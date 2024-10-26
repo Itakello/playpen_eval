@@ -16,7 +16,7 @@ logger = ItakelloLogging(debug=True).get_logger(__name__)
 def main(args: argparse.Namespace) -> None:
     logger.debug(f"Running with model: {args.model}")
     model = get_model(args.model)
-    print(model)
+    print(model.generate("Hello, world!"))
     # benchmarks = get_benchmarks(args.benchmarks)
     # run_benchmarks(model, benchmarks)
 

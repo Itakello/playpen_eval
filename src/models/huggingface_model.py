@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Type
 
 import torch
 from itakello_logging import ItakelloLogging
@@ -12,7 +12,7 @@ from transformers import (
 
 from src.config.config import DEVICE
 
-from .base_model import Model
+from .base_model import Model, ModelBackend
 
 logger = ItakelloLogging().get_logger(__name__)
 
@@ -23,9 +23,16 @@ class HuggingfaceModel(Model):
     tokenizer: Optional[PreTrainedTokenizer] = field(default=None, init=False)
 
     def __post_init__(self) -> None:
+        super().__post_init__()
         kwargs = {"token": self.api_key} if self.api_key else {}
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name, **kwargs)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **kwargs)
+
+    @staticmethod
+    def get_backend_class(backend: ModelBackend) -> Type["Model"]:
+        if backend == Model.ModelBackend.HUGGINGFACE:
+            return HuggingfaceModel
+        raise ValueError(f"Unsupported backend: {backend}")
 
     def generate(self, prompt: str) -> str:
         if self.model is None or self.tokenizer is None:
