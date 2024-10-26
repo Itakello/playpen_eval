@@ -1,15 +1,10 @@
 import json
 import os
+from pathlib import Path
 from typing import Optional
 
-from dotenv import load_dotenv
 
 from .huggingface_model import HuggingfaceModel
-
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Load environment variables from .env file
-load_dotenv()
 
 
 def load_credentials(backend: str) -> Optional[str]:
@@ -19,9 +14,10 @@ def load_credentials(backend: str) -> Optional[str]:
 
 
 def get_model(model_name: str) -> HuggingfaceModel:
-    model_registry_path = os.path.join(project_root, "backends", "model_registry.json")
-    with open(model_registry_path, "r") as f:
-        model_registry = json.load(f)
+    model_registry_path = (
+        Path(__file__).parent.parent / "config" / "model_registry.json"
+    )
+    model_registry = json.loads(model_registry_path.read_text())
 
     model_entry = next(
         (entry for entry in model_registry if entry.get("model_name") == model_name),

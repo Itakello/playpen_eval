@@ -1,0 +1,5 @@
+torch
+itakello_logging
+wandb
+transformers
+python-dotenv

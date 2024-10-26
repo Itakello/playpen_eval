@@ -1,12 +1,13 @@
 import logging
 from dataclasses import dataclass
 
+import torch
 from huggingface_hub.utils import GatedRepoError
+from itakello_logging import ItakelloLogger
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from src.config.config import DEVICE
 from src.eval.backends.base_model import Model
-from itakello_logging import ItakelloLogger
 
 logger = ItakelloLogger()
 
@@ -33,16 +34,20 @@ class HuggingfaceModel(Model):
             )
         except Exception as e:
             logger.error(f"Error loading model {self.model_name}: {str(e)}")
-        
 
     def generate(self, prompt: str) -> str:
-        if self.model is None or self.tokenizer is None:
-            raise ValueError(
-                "Model or tokenizer not initialized. Please check the logs for errors."
+        # Ensure model and tokenizer are on the correct device
+        self.model.to(DEVICE)
+        self.tokenizer.to(DEVICE)
+
+        # Tokenize input
+        model_inputs = self.tokenizer([prompt], return_tensors="pt").to(DEVICE)
+
+        # Generate
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                **model_inputs, do_sample=True, num_return_sequences=1
             )
 
-        model_inputs = self.tokenizer([prompt], return_tensors="pt").to(DEVICE)
-        self.model.to(DEVICE)
-
-        generated_ids = self.model.generate(**model_inputs, do_sample=True)
-        return self.tokenizer.batch_decode(generated_ids)[0]
+        # Decode and return
+        return self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
