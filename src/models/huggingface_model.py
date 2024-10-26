@@ -1,47 +1,43 @@
-import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 import torch
-from huggingface_hub.utils import GatedRepoError
-from itakello_logging import ItakelloLogger
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from itakello_logging import ItakelloLogging
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    PreTrainedModel,
+    PreTrainedTokenizer,
+)
 
 from src.config.config import DEVICE
-from src.eval.backends.base_model import Model
 
-logger = ItakelloLogger()
+from .base_model import Model
+
+logger = ItakelloLogging().get_logger(__name__)
 
 
 @dataclass
 class HuggingfaceModel(Model):
-    model: AutoModelForCausalLM | None = None
-    tokenizer: AutoTokenizer | None = None
+    model: Optional[PreTrainedModel] = field(default=None, init=False)
+    tokenizer: Optional[PreTrainedTokenizer] = field(default=None, init=False)
 
     def __post_init__(self) -> None:
-        self._load_model_and_tokenizer()
-
-    def _load_model_and_tokenizer(self) -> None:
-        try:
-            kwargs = {"token": self.api_key} if self.api_key else {}
-            self.model = AutoModelForCausalLM.from_pretrained(self.model_name, **kwargs)
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **kwargs)
-        except GatedRepoError as e:
-            logger.error(
-                f"Access to model {self.model_name} is restricted. Error: {str(e)}"
-            )
-            logger.info(
-                f"Please visit https://huggingface.co/{self.model_name} to request access."
-            )
-        except Exception as e:
-            logger.error(f"Error loading model {self.model_name}: {str(e)}")
+        kwargs = {"token": self.api_key} if self.api_key else {}
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_name, **kwargs)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **kwargs)
 
     def generate(self, prompt: str) -> str:
-        # Ensure model and tokenizer are on the correct device
-        self.model.to(DEVICE)
-        self.tokenizer.to(DEVICE)
+        if self.model is None or self.tokenizer is None:
+            logger.error("Model or tokenizer not initialized.")
+            return ""
+
+        # Ensure model is on the correct device
+        self.model.to(DEVICE)  # type: ignore
 
         # Tokenize input
-        model_inputs = self.tokenizer([prompt], return_tensors="pt").to(DEVICE)
+        model_inputs = self.tokenizer([prompt], return_tensors="pt")
+        model_inputs = {k: v.to(DEVICE) for k, v in model_inputs.items()}
 
         # Generate
         with torch.no_grad():
