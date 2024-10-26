@@ -3,4 +3,4 @@ itakello_logging
 wandb
 transformers
 python-dotenv
-deepeval
+evaluate

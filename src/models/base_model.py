@@ -3,14 +3,18 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
+from deepeval.models.base_model import DeepEvalBaseLLM
+
+from ..classes.base_class import BaseClass
+
 
 class ModelBackend(Enum):
-    OPENAI = auto()
     HUGGINGFACE = auto()
+    OPENAI = auto()
 
 
 @dataclass
-class Model(ABC):
+class Model(DeepEvalBaseLLM, BaseClass, ABC):
     model_name: str
     backend: ModelBackend
     api_key: str = field(init=False)
@@ -22,9 +26,13 @@ class Model(ABC):
     def generate(self, prompt: str) -> str:
         pass
 
+    """@abstractmethod
+    def batch_generate(self, prompts: list[str]) -> list[str]:
+        pass"""
+
     def _load_credentials(self) -> str:
         """Load API key from environment variables."""
-        env_var_name = f"{self.backend.name}_API_KEY"
+        env_var_name = f"{self.backend.upper()}_API_KEY"
         key = os.getenv(env_var_name)
         if key is None:
             raise ValueError(f"API key for {self.backend.name} not found.")
@@ -32,18 +40,8 @@ class Model(ABC):
 
     @classmethod
     def create(cls, model_name: str, backend: str) -> "Model":
-        try:
-            backend_enum = ModelBackend[backend.upper()]
-        except KeyError:
-            raise ValueError(f"Unsupported backend: {backend}")
+        # Get all available model implementations
+        model_classes = cls.get_others()
 
-        if backend_enum == ModelBackend.HUGGINGFACE:
-            from .huggingface_model import HuggingfaceModel
-
-            return HuggingfaceModel(model_name, ModelBackend.HUGGINGFACE)
-        elif backend_enum == ModelBackend.OPENAI:
-            from .openai_model import OpenaiModel
-
-            return OpenaiModel(model_name, ModelBackend.OPENAI)
-        else:
-            raise ValueError(f"Unsupported backend: {backend}")
+        # Find the appropriate model class for the backend
+        return model_classes[backend](model_name, backend)
