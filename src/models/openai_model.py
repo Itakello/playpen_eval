@@ -1,6 +1,6 @@
-from .base_llm import BaseLlm
+from .base_model import Model
 
 
-class OpenaiModel(BaseLlm):
-    def generate(self) -> None:
-        pass
+class OpenaiModel(Model):
+    def generate(self, prompt: str) -> str:
+        raise NotImplementedError("OpenAI model generation not implemented")
