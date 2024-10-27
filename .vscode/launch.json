@@ -13,10 +13,11 @@
                 "-m",
                 "Llama-3.2-1B-Instruct",
                 "-b",
-                "all"
+                "mmlu"
             ],
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false
         },
         {
             "name": "Python Debugger: Current File",

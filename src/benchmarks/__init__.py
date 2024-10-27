@@ -1,3 +1,5 @@
+from ..classes.score import Score
+from ..models.base_model import Model
 from .base_benchmark import Benchmark
 
 
@@ -10,9 +12,9 @@ def get_benchmarks(benchmark_names: list[str]) -> list[Benchmark]:
     return benchmarks
 
 
-def run_benchmarks(model, benchmarks: list[Benchmark]) -> list[dict]:
-    results = []
+def run_benchmarks(model: Model, benchmarks: list[Benchmark]) -> dict[str, Score]:
+    results = {}
     for benchmark in benchmarks:
         result = benchmark.evaluate(model)
-        results.append(result)
+        results[benchmark.name] = result
     return results

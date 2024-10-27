@@ -2,8 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
-
-from deepeval.models.base_model import DeepEvalBaseLLM
+from typing import Any
 
 from ..classes.base_class import BaseClass
 
@@ -14,7 +13,7 @@ class ModelBackend(Enum):
 
 
 @dataclass
-class Model(DeepEvalBaseLLM, BaseClass, ABC):
+class Model(BaseClass, ABC):
     model_name: str
     backend: ModelBackend
     api_key: str = field(init=False)
@@ -45,3 +44,7 @@ class Model(DeepEvalBaseLLM, BaseClass, ABC):
 
         # Find the appropriate model class for the backend
         return model_classes[backend](model_name, backend)
+
+    @abstractmethod
+    def load_model(self) -> Any:
+        pass

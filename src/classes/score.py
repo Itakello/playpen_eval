@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-from .task import Task
+from pandas import DataFrame
 
 
 @dataclass
 class Score:
     overall: float
-    per_task: dict[Task, float]
+    per_task: DataFrame

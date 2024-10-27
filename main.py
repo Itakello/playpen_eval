@@ -16,7 +16,9 @@ def main(args: argparse.Namespace) -> None:
     logger.debug(f"Running with model: {args.model}")
     model = get_model(args.model)
     benchmarks = get_benchmarks(args.benchmarks)
-    run_benchmarks(model, benchmarks)
+    results = run_benchmarks(model, benchmarks)
+    for benchmark, df in results.items():
+        logger.info(f"{benchmark}:\n{df}\n")
 
 
 if __name__ == "__main__":
