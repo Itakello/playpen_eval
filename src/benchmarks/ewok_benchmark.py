@@ -13,6 +13,5 @@ class EwokBenchmark(HuggingfaceBenchmark):
     )
     id: str = "ewok-core/ewok-core-1.0"
 
-    """def evaluate(self, model: Model) -> Score:
-        score = self.benchmark.evaluate(model)
-        return Score(score.overall, score.per_task)"""
+    def evaluate(self, model: Model) -> Score:
+        pass
