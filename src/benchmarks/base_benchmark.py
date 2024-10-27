@@ -43,12 +43,13 @@ class Benchmark(BaseClass, ABC):
 class HuggingfaceBenchmark(Benchmark, ABC):
     id: str
     api_key: str = field(init=False)
+
     def __post_init__(self) -> None:
         self.api_key = self.load_credentials("huggingface")
         kwargs = {"token": self.api_key} if self.api_key else {}
         self.benchmark = load_dataset(self.id, **kwargs)
 
     def evaluate(self, model: Model) -> Score:
-        pass
+        raise NotImplementedError("The evaluate method must be implemented.")
 
 

@@ -45,6 +45,7 @@ class BaseClass(ABC):
                     # Check if the class inherits from cls but is not cls itself
                     if issubclass(obj, cls) and obj != cls:
                         subclasses[module_name] = obj
+                        break
             except ImportError:
                 continue
 
