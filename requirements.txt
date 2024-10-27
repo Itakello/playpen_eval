@@ -1,6 +1,8 @@
-torch
+torch==2.4.0
 itakello_logging
 wandb
 transformers
 python-dotenv
 evaluate
+deepeval
+accelerate

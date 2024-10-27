@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from datasets import load_dataset
@@ -11,13 +11,13 @@ from ..models.base_model import Model
 
 class BenchmarkType(Enum):
     FUNCTIONAL = auto()
-    PERFORMANCE = auto()
-    SAFETY = auto()
+    FORMAL = auto()
+    MIXED = auto()
 
 
 class BenchmarkCategory(Enum):
-    MATH = auto()
-    REASONING = auto()
+    WORLD_KNOWLEDGE = auto()
+    MISCELLANEOUS = auto()
 
 
 @dataclass
@@ -41,5 +41,14 @@ class Benchmark(BaseClass, ABC):
 
 @dataclass
 class HuggingfaceBenchmark(Benchmark, ABC):
+    id: str
+    api_key: str = field(init=False)
     def __post_init__(self) -> None:
-        self.benchmark = load_dataset(self.id)
+        self.api_key = self.load_credentials("huggingface")
+        kwargs = {"token": self.api_key} if self.api_key else {}
+        self.benchmark = load_dataset(self.id, **kwargs)
+
+    def evaluate(self, model: Model) -> Score:
+        pass
+
+

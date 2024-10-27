@@ -20,7 +20,7 @@ class Model(DeepEvalBaseLLM, BaseClass, ABC):
     api_key: str = field(init=False)
 
     def __post_init__(self) -> None:
-        self.api_key = self._load_credentials()
+        self.api_key = self.load_credentials(self.backend)
 
     @abstractmethod
     def generate(self, prompt: str) -> str:
@@ -29,14 +29,6 @@ class Model(DeepEvalBaseLLM, BaseClass, ABC):
     """@abstractmethod
     def batch_generate(self, prompts: list[str]) -> list[str]:
         pass"""
-
-    def _load_credentials(self) -> str:
-        """Load API key from environment variables."""
-        env_var_name = f"{self.backend.upper()}_API_KEY"
-        key = os.getenv(env_var_name)
-        if key is None:
-            raise ValueError(f"API key for {self.backend.name} not found.")
-        return key
 
     @classmethod
     def create(cls, model_name: str, backend: str) -> "Model":

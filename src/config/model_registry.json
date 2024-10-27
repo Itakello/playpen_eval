@@ -1,7 +1,7 @@
 [
   {
     "model_name": "Llama-3.1-8B-Instruct",
-    "model_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+    "model_id": "meta-llama/Meta-Llama-3.1-8B-Instruct",
     "backend": "huggingface",
     "requires_api_key": true
   },

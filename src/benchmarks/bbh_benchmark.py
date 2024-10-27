@@ -10,8 +10,8 @@ from .base_benchmark import Benchmark, BenchmarkCategory, BenchmarkType
 
 @dataclass
 class BbhBenchmark(Benchmark):
-    type: BenchmarkType = BenchmarkType.FUNCTIONAL
-    category: BenchmarkCategory = BenchmarkCategory.REASONING
+    type: BenchmarkType = BenchmarkType.MIXED
+    category: BenchmarkCategory = BenchmarkCategory.MISCELLANEOUS
     description: str = (
         "Assesses complex logical deduction, multi-step reasoning, and the application of knowledge in various contexts, using exact match scoring to measure performance on specific, often real-world-like tasks."
     )

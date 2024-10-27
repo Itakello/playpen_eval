@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import os
 from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,6 +8,7 @@ from pathlib import Path
 
 @dataclass
 class BaseClass(ABC):
+
     @classmethod
     def get_others(cls) -> dict[str, type]:
         """Get all non-base classes in the same directory that inherit from this class."""
@@ -47,3 +49,11 @@ class BaseClass(ABC):
                 continue
 
         return subclasses
+
+    def load_credentials(self, backend) -> str:
+        """Load API key from environment variables."""
+        env_var_name = f"{backend.upper()}_API_KEY"
+        key = os.getenv(env_var_name)
+        if key is None:
+            raise ValueError(f"API key for {backend} not found.")
+        return key
