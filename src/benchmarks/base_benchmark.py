@@ -18,6 +18,7 @@ class BenchmarkType(Enum):
 class BenchmarkCategory(Enum):
     WORLD_KNOWLEDGE = auto()
     MISCELLANEOUS = auto()
+    REASONING = auto()
 
 
 @dataclass
@@ -48,5 +49,3 @@ class HuggingfaceBenchmark(Benchmark, ABC):
         self.api_key = self.load_credentials("huggingface")
         kwargs = {"token": self.api_key} if self.api_key else {}
         self.benchmark = load_dataset(self.id, **kwargs)
-
-

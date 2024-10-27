@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-import evaluate
 from datasets import load_dataset
+from evaluate import evaluator
 from itakello_logging import ItakelloLogging
 from tqdm import tqdm
 
@@ -23,43 +23,25 @@ class MmluBenchmark(Benchmark):
 
     def __post_init__(self) -> None:
         self.dataset = load_dataset("cais/mmlu", "all")
-        self.metric = evaluate.load("exact_match")
+        self.task_evaluator = evaluator("text-classification")
 
     def evaluate(self, model: Model) -> Score:
         results = {}
-        total_correct = 0
-        total_samples = 0
 
-        for task, task_dataset in tqdm(
-            self.dataset.items(), desc="Evaluating MMLU tasks"
-        ):
-            task_correct = 0
-            task_total = 0
+        test_set = self.dataset.items().get("test")
+        task_results: dict = self.task_evaluator.compute(
+            model_or_pipeline=model,
+            data=test_set,
+            metric="exact_match",
+            strategy="bootstrap",
+            n_resamples=100,
+        )
 
-            for sample in tqdm(task_dataset["test"], desc=f"Task: {task}", leave=False):
-                context = sample["context"] if "context" in sample else ""
-                question = sample["question"]
-                choices = sample["choices"]
-                correct_answer = sample["answer"]
+        # Extract the score and confidence intervals
+        task_accuracy = task_results["exact_match"]["score"]
+        confidence_interval = task_results["exact_match"]["confidence_interval"]
 
-                # Generate the model's prediction
-                prediction = model.generate(
-                    context=context, question=question, choices=choices
-                )
-
-                # Compute exact match
-                is_correct = self.metric.compute(
-                    predictions=[prediction], references=[correct_answer]
-                )["exact_match"]
-
-                task_correct += is_correct
-                task_total += 1
-
-            task_accuracy = task_correct / task_total
-            results[task] = task_accuracy
-            total_correct += task_correct
-            total_samples += task_total
-
-        overall_accuracy = total_correct / total_samples
-
-        return Score(overall=overall_accuracy, per_task=results)
+        results[task] = {
+            "accuracy": task_accuracy,
+            "confidence_interval": confidence_interval,
+        }

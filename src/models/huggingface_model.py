@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import torch
-import transformers
 from itakello_logging import ItakelloLogging
 from transformers import (
     AutoModelForCausalLM,
@@ -11,7 +10,7 @@ from transformers import (
     PreTrainedTokenizer,
 )
 
-from src.config.config import DEVICE, MAX_NEW_TOKENS
+from src.config.config import DEVICE
 
 from .base_model import Model
 
