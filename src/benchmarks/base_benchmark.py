@@ -49,7 +49,4 @@ class HuggingfaceBenchmark(Benchmark, ABC):
         kwargs = {"token": self.api_key} if self.api_key else {}
         self.benchmark = load_dataset(self.id, **kwargs)
 
-    def evaluate(self, model: Model) -> Score:
-        raise NotImplementedError("The evaluate method must be implemented.")
-
 

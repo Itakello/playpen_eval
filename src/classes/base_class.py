@@ -44,8 +44,8 @@ class BaseClass(ABC):
                 for name, obj in inspect.getmembers(module, inspect.isclass):
                     # Check if the class inherits from cls but is not cls itself
                     if issubclass(obj, cls) and obj != cls:
-                        subclasses[module_name] = obj
-                        break
+                        if not obj.__subclasses__():
+                            subclasses[module_name] = obj
             except ImportError:
                 continue
 

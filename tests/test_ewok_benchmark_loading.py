@@ -1,19 +1,18 @@
 import unittest
-from src.benchmarks.base_benchmark import HuggingfaceBenchmark, BenchmarkCategory, BenchmarkType
+from src.benchmarks.base_benchmark import BenchmarkCategory, BenchmarkType
+from src.benchmarks.ewok_benchmark import EwokBenchmark
 from dotenv import load_dotenv
 
-class TestHuggingfaceBenchmark(unittest.TestCase):
+class TestEwokBenchmark(unittest.TestCase):
     def setUp(self):
         load_dotenv()
         self.benchmark_name = "ewok"
-        self.benchmark_id = "ewok-core/ewok-core-1.0"
         self.type = BenchmarkType.FUNCTIONAL
         self.category = BenchmarkCategory.WORLD_KNOWLEDGE
-        self.huggingface_benchmark = HuggingfaceBenchmark(name=self.benchmark_name,
+        self.huggingface_benchmark = EwokBenchmark(name=self.benchmark_name,
                                                           type=self.type,
                                                           category=self.category,
-                                                          description="",
-                                                          id=self.benchmark_id,)
+                                                          description="")
 
 
     def test_dataset_loading(self):
