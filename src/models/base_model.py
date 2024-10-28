@@ -13,7 +13,7 @@ class ModelBackend(Enum):
 
 @dataclass
 class Model(BaseClass, ABC):
-    model_name: str
+    name: str
     backend: ModelBackend
     api_key: str = field(init=False)
 

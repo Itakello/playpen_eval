@@ -3,6 +3,8 @@ __pycache__/
 
 # Logs
 logs/
+results/details/
+tmp/
 
 *.pyc
 *.pyo
@@ -10,3 +12,4 @@ logs/
 
 # Env
 .env
+.cursorrules

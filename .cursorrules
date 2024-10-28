@@ -39,6 +39,7 @@ You are an expert software engineer specializing in Python development, with a f
 - Use context managers (with statements) for resource management.
 - Use built-in types (list, dict, tuple, set) instead of importing from typing module.
 - For type hinting, use built-in types directly (e.g., list[int], dict[str, float]).
+- Use the | operator for union types (e.g., str | None) instead of Union from typing.
 
 ## REST Principles
 

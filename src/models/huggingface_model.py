@@ -29,12 +29,12 @@ class HuggingfaceModel(Model):
         kwargs = {"token": self.api_key} if self.api_key else {}
         try:
             self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_name, device_map="auto", max_memory={0: "5.5GB"}, **kwargs
+                self.name, device_map="auto", max_memory={0: "5.5GB"}, **kwargs
             )
         except Exception as e:
-            logger.error(f"Error loading model {self.model_name}: {e}")
+            logger.error(f"Error loading model {self.name}: {e}")
             raise e
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **kwargs)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.name, **kwargs)
 
     def generate(self, prompt: str) -> str:
         if self.model is None or self.tokenizer is None:
@@ -57,14 +57,17 @@ class HuggingfaceModel(Model):
 
         # Decode and return
         return self.tokenizer.decode(
-            generated_ids[0], padding=True, skip_special_tokens=True
+            generated_ids[0],
+            padding=True,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False,
         )
 
     async def a_generate(self, prompt: str) -> str:
         return self.generate(prompt)
 
     def get_model_name(self) -> str:
-        return self.model_name
+        return self.name
 
     def load_model(self) -> PreTrainedModel:
         if self.model is None:

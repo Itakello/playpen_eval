@@ -12,18 +12,18 @@ class TestHuggingfaceModel(unittest.TestCase):
         load_dotenv()
 
     def test_model_initialization(self):
-        model = HuggingfaceModel(model_name=self.model_name)
+        model = HuggingfaceModel(name=self.model_name)
 
         # Test if the model is initialized correctly
         self.assertIsNotNone(model)
-        self.assertEqual(model.model_name, self.model_name)
+        self.assertEqual(model.name, self.model_name)
         self.assertIsNotNone(model.model)
         self.assertIsNotNone(model.tokenizer)
 
         print(f"\nModel '{self.model_name}' initialized successfully.")
 
     def test_text_generation(self):
-        model = HuggingfaceModel(model_name=self.model_name)
+        model = HuggingfaceModel(name=self.model_name)
 
         prompt = "Explain the concept of machine learning in one sentence:"
         generated_text = model.generate(prompt)

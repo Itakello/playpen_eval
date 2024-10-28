@@ -29,7 +29,7 @@ class Benchmark(BaseClass, ABC):
     description: str
 
     @abstractmethod
-    def evaluate(self, model: Model) -> Score:
+    def evaluate(self, model: Model) -> dict:
         pass
 
     @classmethod

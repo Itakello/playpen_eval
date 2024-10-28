@@ -5,6 +5,10 @@ from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
 
+from itakello_logging import ItakelloLogging
+
+logger = ItakelloLogging().get_logger(__name__)
+
 
 @dataclass
 class BaseClass(ABC):
@@ -46,7 +50,8 @@ class BaseClass(ABC):
                     if issubclass(obj, cls) and obj != cls:
                         if not obj.__subclasses__():
                             subclasses[module_name] = obj
-            except ImportError:
+            except ImportError as e:
+                logger.error(f"Failed to import module {module_full_name}: {e}")
                 continue
 
         return subclasses
