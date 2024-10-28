@@ -4,11 +4,13 @@ from dataclasses import dataclass, field
 from datetime import timedelta
 from pathlib import Path
 
+from huggingface_hub.constants import HUGGINGFACE_HUB_CACHE
 from lighteval.logging.evaluation_tracker import EvaluationTracker
 from lighteval.models.model_config import BaseModelConfig
 from lighteval.pipeline import ParallelismManager, Pipeline, PipelineParameters
 from lighteval.utils.imports import is_accelerate_available
 from lighteval.utils.utils import EnvConfig
+
 
 if is_accelerate_available():
     from accelerate import Accelerator, InitProcessGroupKwargs
@@ -43,6 +45,7 @@ class LightEvalBenchmark(Benchmark):
 
     tasks: str
     output_dir: Path = field(init=False, default=Path("./results"))
+    cache_dir: Path = field(init=False, default=Path(HUGGINGFACE_HUB_CACHE))
     save_details: bool = field(init=False, default=True)
     push_to_hub: bool = field(init=False, default=True)
     hub_results_org: str = field(init=False, default="clembench-project-playpen")
@@ -51,7 +54,6 @@ class LightEvalBenchmark(Benchmark):
     custom_task_directory: Path | None = field(init=False, default=None)
 
     def __post_init__(self):
-        self.cache_dir = os.getenv("HUGGINGFACE_CACHE_PATH")
         self.token = os.getenv("HUGGINGFACE_API_KEY")
         logger.debug(f"Your huggingface cache directory is {self.cache_dir}")
 
