@@ -1,3 +1,5 @@
+import os
+from itakello_logging import ItakelloLogging
 from dataclasses import dataclass, field
 from datetime import timedelta
 from pathlib import Path
@@ -19,6 +21,8 @@ else:
 
 from ..models.base_model import Model
 from .base_benchmark import Benchmark
+
+logger = ItakelloLogging(debug=True).get_logger(__name__)
 
 
 @dataclass
@@ -42,10 +46,14 @@ class LightEvalBenchmark(Benchmark):
     save_details: bool = field(init=False, default=True)
     push_to_hub: bool = field(init=False, default=True)
     hub_results_org: str = field(init=False, default="clembench-project-playpen")
-    cache_dir: Path = field(init=False, default=Path("tmp/"))
     batch_size: int = field(init=False, default=8)
     max_samples: int | None = field(init=False, default=100)
     custom_task_directory: Path | None = field(init=False, default=None)
+
+    def __post_init__(self):
+        self.cache_dir = os.getenv("HUGGINGFACE_CACHE_PATH")
+        logger.debug(f"Your huggingface cache directory is {self.cache_dir}")
+
 
     def _create_evaluation_tracker(self) -> EvaluationTracker:
         """Create the evaluation tracker instance."""
@@ -66,10 +74,10 @@ class LightEvalBenchmark(Benchmark):
             # num_fewshot_seeds=8
         )
 
-    def _create_model_config(self, model: Model) -> BaseModelConfig:
+    def _create_model_config(self, model_name: str) -> BaseModelConfig:
         """Create model configuration for LightEval."""
         return BaseModelConfig(
-            pretrained=model.name,
+            pretrained=model_name,
             accelerator=accelerator,  # type: ignore
             dtype="float16",
             use_chat_template=True,
@@ -77,7 +85,7 @@ class LightEvalBenchmark(Benchmark):
             trust_remote_code=False,  # Set this based on your requirements
         )
 
-    def evaluate(self, model: Model) -> dict:
+    def evaluate(self, model_name: str) -> dict:
         """Evaluate the model using LightEval.
 
         Args:
@@ -88,14 +96,13 @@ class LightEvalBenchmark(Benchmark):
         """
         evaluation_tracker = self._create_evaluation_tracker()
         pipeline_params = self._create_pipeline_params()
-        model_config = self._create_model_config(model)
+        model_config = self._create_model_config(model_name)
 
         pipeline = Pipeline(
             tasks=self.tasks,
             pipeline_parameters=pipeline_params,
             evaluation_tracker=evaluation_tracker,
             model_config=model_config,
-            model=model,
         )
 
         # Run evaluation

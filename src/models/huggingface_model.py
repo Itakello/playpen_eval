@@ -29,7 +29,7 @@ class HuggingfaceModel(Model):
         kwargs = {"token": self.api_key} if self.api_key else {}
         try:
             self.model = AutoModelForCausalLM.from_pretrained(
-                self.name, device_map="auto", max_memory={0: "5.5GB"}, **kwargs
+                self.name, device_map=DEVICE, max_memory={0: "5.5GB"}, **kwargs
             )
         except Exception as e:
             logger.error(f"Error loading model {self.name}: {e}")

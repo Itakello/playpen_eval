@@ -36,7 +36,6 @@ class Benchmark(BaseClass, ABC):
     def create(cls, name: str) -> "Benchmark":
         # Get all available benchmark implementations
         benchmark_classes = cls.get_others()
-
         return benchmark_classes[name](name)
 
 
