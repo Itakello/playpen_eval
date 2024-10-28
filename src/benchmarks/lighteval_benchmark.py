@@ -52,6 +52,7 @@ class LightEvalBenchmark(Benchmark):
 
     def __post_init__(self):
         self.cache_dir = os.getenv("HUGGINGFACE_CACHE_PATH")
+        self.token = os.getenv("HUGGINGFACE_API_KEY")
         logger.debug(f"Your huggingface cache directory is {self.cache_dir}")
 
 
@@ -68,7 +69,7 @@ class LightEvalBenchmark(Benchmark):
         """Create pipeline parameters instance."""
         return PipelineParameters(
             launcher_type=ParallelismManager.ACCELERATE,
-            env_config=EnvConfig(cache_dir=str(self.cache_dir)),
+            env_config=EnvConfig(token=self.token, cache_dir=str(self.cache_dir)),
             override_batch_size=self.batch_size,
             max_samples=self.max_samples,
             # num_fewshot_seeds=8
