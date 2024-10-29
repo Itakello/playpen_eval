@@ -1,16 +1,15 @@
 import os
-from itakello_logging import ItakelloLogging
 from dataclasses import dataclass, field
 from datetime import timedelta
 from pathlib import Path
 
 from huggingface_hub.constants import HUGGINGFACE_HUB_CACHE
+from itakello_logging import ItakelloLogging
 from lighteval.logging.evaluation_tracker import EvaluationTracker
 from lighteval.models.model_config import BaseModelConfig
 from lighteval.pipeline import ParallelismManager, Pipeline, PipelineParameters
 from lighteval.utils.imports import is_accelerate_available
 from lighteval.utils.utils import EnvConfig
-
 
 if is_accelerate_available():
     from accelerate import Accelerator, InitProcessGroupKwargs
@@ -44,25 +43,25 @@ class LightEvalBenchmark(Benchmark):
     """
 
     tasks: str
+    max_samples: int = 100
     output_dir: Path = field(init=False, default=Path("./results"))
     cache_dir: Path = field(init=False, default=Path(HUGGINGFACE_HUB_CACHE))
-    save_details: bool = field(init=False, default=True)
     push_to_hub: bool = field(init=False, default=True)
     hub_results_org: str = field(init=False, default="clembench-project-playpen")
     batch_size: int = field(init=False, default=8)
-    max_samples: int | None = field(init=False, default=100)
     custom_task_directory: Path | None = field(init=False, default=None)
-
-    def __post_init__(self):
-        self.token = os.getenv("HUGGINGFACE_API_KEY")
-        logger.debug(f"Your huggingface cache directory is {self.cache_dir}")
-
+    token: str = field(
+        init=False,
+        default_factory=lambda: os.getenv(
+            "HUGGINGFACE_API_KEY", "<HUGGINGFACE_API_KEY>"
+        ),
+    )
 
     def _create_evaluation_tracker(self) -> EvaluationTracker:
         """Create the evaluation tracker instance."""
         return EvaluationTracker(
             output_dir=str(self.output_dir),
-            save_details=self.save_details,
+            save_details=True,
             push_to_hub=self.push_to_hub,
             hub_results_org=self.hub_results_org,
         )
@@ -74,7 +73,9 @@ class LightEvalBenchmark(Benchmark):
             env_config=EnvConfig(token=self.token, cache_dir=str(self.cache_dir)),
             override_batch_size=self.batch_size,
             max_samples=self.max_samples,
-            # num_fewshot_seeds=8
+            num_fewshot_seeds=5,  # Standard MMLU uses 5-shot
+            use_chat_template=True,  # For MMLU, better to use standard prompting
+            system_prompt=None,  # No system prompt needed for MMLU
         )
 
     def _create_model_config(self, model_name: str) -> BaseModelConfig:
@@ -83,9 +84,9 @@ class LightEvalBenchmark(Benchmark):
             pretrained=model_name,
             accelerator=accelerator,  # type: ignore
             dtype="float16",
-            use_chat_template=True,
+            use_chat_template=True,  # Consider setting this to False for MMLU
             batch_size=self.batch_size,
-            trust_remote_code=False,  # Set this based on your requirements
+            trust_remote_code=False,
         )
 
     def evaluate(self, model_name: str) -> dict:
@@ -112,9 +113,18 @@ class LightEvalBenchmark(Benchmark):
         pipeline.evaluate()
 
         # Save results
-        # pipeline.save_and_push_results()
+        pipeline.save_and_push_results()
 
         # Get results
-        results = pipeline.show_results()
+        results = pipeline.get_results()
 
         return results
+
+    def validate_response(self, response: str) -> str | None:
+        """Validate and clean model response."""
+        # Get first character and uppercase it
+        if response and len(response) > 0:
+            answer = response[0].upper()
+            if answer in ["A", "B", "C", "D"]:
+                return answer
+        return None
