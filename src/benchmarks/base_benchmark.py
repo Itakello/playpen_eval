@@ -5,7 +5,6 @@ from enum import Enum, auto
 from datasets import load_dataset
 
 from ..classes.base_class import BaseClass
-from ..classes.score import Score
 from ..models.base_model import Model
 
 
@@ -35,7 +34,7 @@ class Benchmark(BaseClass, ABC):
     @classmethod
     def create(cls, name: str) -> "Benchmark":
         # Get all available benchmark implementations
-        benchmark_classes = cls.get_others()
+        benchmark_classes = cls.get_all_subclasses()
         return benchmark_classes[name](name)
 
 

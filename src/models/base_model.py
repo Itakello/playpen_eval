@@ -31,7 +31,7 @@ class Model(BaseClass, ABC):
     @classmethod
     def create(cls, model_name: str, backend: str) -> "Model":
         # Get all available model implementations
-        model_classes = cls.get_others()
+        model_classes = cls.get_all_subclasses()
 
         # Find the appropriate model class for the backend
         return model_classes[backend](model_name, backend)

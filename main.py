@@ -3,7 +3,8 @@ import argparse
 from dotenv import load_dotenv
 from itakello_logging import ItakelloLogging
 
-from src.benchmarks import get_benchmark, run_benchmark, run_benchmark_lighteval
+from src.benchmarks import run_benchmark, run_benchmark_lighteval
+from src.benchmarks.base_benchmark import Benchmark
 from src.benchmarks.lighteval_benchmark import LightEvalBenchmark
 from src.models import get_model, get_model_id
 
@@ -14,8 +15,13 @@ logger = ItakelloLogging(debug=True).get_logger(__name__)
 
 
 def main(args: argparse.Namespace) -> None:
-    logger.debug(f"Evaluating on benchmark: {args.benchmark}")
-    benchmark = get_benchmark(args.benchmark)
+    if len(args.benchmark) == 1 and args.benchmark[0] == "all":
+        benchmarks = Benchmark.get_all_subclasses()
+    else:
+        benchmarks = [Benchmark.get_specific_subclass(benchmark) for benchmark in args.benchmark]
+    logger.debug(
+        f"Evaluating the following benchmarks\n: {['-' + benchmark + '\n' for benchmark in benchmarks]}"
+    )
     logger.debug(f"Running with model: {args.model}")
     if issubclass(benchmark.__class__, LightEvalBenchmark):
         model_name = get_model_id(args.model)
