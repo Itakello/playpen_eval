@@ -6,3 +6,4 @@ python-dotenv
 evaluate
 accelerate
 weave
+gdown

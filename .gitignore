@@ -13,3 +13,9 @@ tmp/
 # Env
 .env
 .cursorrules
+
+# datasets
+datasets
+
+# tests
+tests/

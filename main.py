@@ -23,15 +23,16 @@ logger = ItakelloLogging(debug=True).get_logger(__name__)
 def main(args: argparse.Namespace) -> None:
     # mmlu_benchmark = MMLUBenchmark()
     # print(mmlu_benchmark)
-    hf_model = HfModel(
+    """hf_model = HfModel(
         # name="Llama-3.2-1B-Instruct",
         id="meta-llama/Llama-3.2-1B-Instruct",
         backend=ModelBackend.HUGGINGFACE,
     )
-    print(hf_model)
-    """benchmarks = get_benchmarks(args.benchmark)
-    model = get_model(args.model)
-    for benchmark, df in results.items():
+    print(hf_model)"""
+    benchmarks = get_benchmarks(args.benchmark)
+
+    #model = get_model(args.model)
+    """for benchmark, df in results.items():
         logger.info(f"{benchmark}:\n{df}\n")"""
 
 
