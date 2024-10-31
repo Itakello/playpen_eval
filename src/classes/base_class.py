@@ -1,8 +1,5 @@
 import importlib
 import inspect
-import gdown
-import os
-import zipfile
 from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
@@ -118,18 +115,3 @@ class BaseClass(ABC):
                 continue
 
         return subclasses
-
-    def _download_from_url(self, url, dataset_name, output_folder=None):
-        output_folder = os.path.join(Path(__file__).resolve().parent.parent.parent, "datasets", dataset_name) if output_folder is None else output_folder
-
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-            gdown.download_folder(url, output=output_folder, quiet=False)
-
-            dowloaded_file = os.path.join(output_folder, f"{dataset_name}.zip")
-            with zipfile.ZipFile(dowloaded_file, 'r') as zip_ref:
-                zip_ref.extractall(output_folder)
-
-            os.remove(dowloaded_file)
-
-        return Path(os.path.join(output_folder))
