@@ -1,31 +1,32 @@
-from dataclasses import dataclass
+from typing import Callable
 
-from datasets import load_dataset
-from itakello_logging import ItakelloLogging
+import weave
+from datasets import Dataset as HfDataset
+from datasets import DatasetDict, load_dataset
+from pydantic import BaseModel
 from weave import Dataset as WeaveDataset
 
-from ..models.base_model import BaseModel
-from ..scoring_functions import exact_match
-from .base_benchmark import BenchmarkCategory, BenchmarkType, HfBenchmark
-
-logger = ItakelloLogging().get_logger(__name__)
+from ..utils.scoring_functions import exact_match
+from .custom_benchmark import BenchmarkCategory, BenchmarkType, HfBenchmark
 
 
-@dataclass
-class MMLUBenchmark(HfBenchmark):
+class MMLUBenchmark(HfBenchmark, BaseModel):
     id: str = "tasksource/mmlu"
     name: str = "MMLU"
     type: BenchmarkType = BenchmarkType.FUNCTIONAL
     category: BenchmarkCategory = BenchmarkCategory.REASONING
     description: str = "Benchmark testing the model's reasoning abilities"
-    scoring_function = exact_match
+    scoring_function: Callable | None = exact_match
 
     def _build_dataset(self) -> WeaveDataset:
-        raise NotImplementedError
+        assert self.hf_dataset
+        rows = self.hf_dataset.to_list()
+        table_rows = weave.Table(rows)
+        return WeaveDataset(name=self.name, rows=table_rows)
 
-    def evaluate(self, model: BaseModel) -> dict:
-        return super().evaluate(model)
-
-    def _load_dataset(self) -> dict:
+    def _load_test_dataset(self) -> HfDataset:
         dataset = load_dataset(self.id, "abstract_algebra")
-        return dataset["test"]
+        assert type(dataset) is DatasetDict
+        test_set = dataset["test"]
+        assert type(test_set) is HfDataset
+        return test_set

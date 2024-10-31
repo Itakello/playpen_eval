@@ -3,16 +3,21 @@ import json
 from itakello_logging import ItakelloLogging
 
 from ..config.config import MODEL_REGISTRY_PATH
-from .base_model import BaseModel
+from .custom_model import CustomModel, ModelBackend
+from .hf_model import HfModel
 
 logger = ItakelloLogging().get_logger(__name__)
 
 
-def get_model(name: str) -> BaseModel:
+def get_model(name: str) -> CustomModel:
     entry = get_model_from_registry(name)
-    model = BaseModel.create(
-        id=entry["id"], name=entry["name"], backend=entry["backend"]
-    )
+    backend = ModelBackend(entry["backend"])
+    if backend == ModelBackend.HUGGINGFACE:
+        model = HfModel(id=entry["id"], name=entry["name"])
+    elif backend == ModelBackend.OPENAI:
+        raise NotImplementedError("OpenAI models are not yet supported.")
+    else:
+        raise ValueError(f"Model backend {backend} not supported.")
     logger.debug(f"Model {name} loaded.")
     return model
 

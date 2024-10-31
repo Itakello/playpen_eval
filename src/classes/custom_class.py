@@ -1,21 +1,20 @@
 import importlib
 import inspect
 from abc import ABC
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Type, TypeVar
 
 from itakello_logging import ItakelloLogging
+from pydantic import BaseModel
 
 logger = ItakelloLogging().get_logger(__name__)
-T = TypeVar("T", bound="BaseClass")
+T = TypeVar("T", bound="CustomClass")
 
 
-@dataclass
-class BaseClass(ABC):
+class CustomClass(ABC, BaseModel):
 
     @classmethod
-    def get_all_subclasses(cls: Type[T]) -> dict[str, T]:
+    def get_all_subclasses(cls: Type[T]) -> dict[str, Type[T]]:
         """Get all subclasses in the same directory that inherit from this class."""
         current_dir, base_module_name = cls._get_module_path()
         if not current_dir:
@@ -27,7 +26,7 @@ class BaseClass(ABC):
     @classmethod
     def get_specific_subclasses(
         cls: Type[T], subclass_names: list[str]
-    ) -> dict[str, T]:
+    ) -> dict[str, Type[T]]:
         """Get specific subclasses by their names.
 
         Args:
@@ -48,9 +47,14 @@ class BaseClass(ABC):
         return found_subclasses
 
     @classmethod
+    def get_subclass(cls: Type[T], subclass_name: str) -> Type[T]:
+        """Get a specific subclass by its name"""
+        return cls.get_specific_subclasses([subclass_name]).get(subclass_name)
+
+    @classmethod
     def _filter_subclasses(
-        cls, subclasses: dict[str, T], subclass_names: list[str]
-    ) -> dict[str, T]:
+        cls, subclasses: dict[str, Type[T]], subclass_names: list[str]
+    ) -> dict[str, Type[T]]:
         """Filter the subclasses based on the given names."""
         # Normalize subclass names to lowercase for case-insensitive matching
         subclass_names = [name.lower() for name in subclass_names]
@@ -78,6 +82,7 @@ class BaseClass(ABC):
             return None, ""
 
         current_dir = Path(str(module_file)).parent
+        assert subclass_module
         base_module_name = subclass_module.__name__.rsplit(".", 1)[0]
         return current_dir, base_module_name
 
@@ -89,13 +94,13 @@ class BaseClass(ABC):
             for f in current_dir.glob("*.py")
             if f.is_file()
             and f.name != "__init__.py"
-            and not f.name.startswith("base_")
+            and not f.name.startswith("custom_")
         ]
 
     @classmethod
     def _load_subclasses(
         cls: Type[T], py_files: list[Path], base_module_name: str
-    ) -> dict[str, T]:
+    ) -> dict[str, Type[T]]:
         """Helper method to load subclasses from Python files."""
         subclasses = {}
         for file in py_files:

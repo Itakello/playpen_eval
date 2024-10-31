@@ -1,15 +1,19 @@
+from typing import Type
+
 from itakello_logging import ItakelloLogging
 
-from .base_benchmark import BaseBenchmark
+from .custom_benchmark import CustomBenchmark
 
 logger = ItakelloLogging().get_logger(__name__)
 
 
-def get_benchmarks(benchmark_names: list[str]) -> dict[str, BaseBenchmark]:
+def get_benchmarks(benchmark_names: list[str]) -> dict[str, CustomBenchmark]:
     if len(benchmark_names) == 1 and benchmark_names[0] == "all":
-        benchmarks = BaseBenchmark.get_all_subclasses()
+        benchmarks = CustomBenchmark.get_all_subclasses()
     else:
-        benchmarks = BaseBenchmark.get_specific_subclasses(benchmark_names)
+        benchmarks = CustomBenchmark.get_specific_subclasses(benchmark_names)
+
+    benchmarks = {name: benchmark() for name, benchmark in benchmarks.items()}
 
     if None in benchmarks.values():
         logger.error("One or more benchmarks could not be found")
