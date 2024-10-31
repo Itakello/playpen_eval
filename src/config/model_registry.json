@@ -1,32 +1,27 @@
 [
   {
-    "model_name": "Llama-3.1-8B-Instruct",
-    "model_id": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-    "backend": "huggingface",
-    "requires_api_key": true
+    "name": "Llama-3.1-8B-Instruct",
+    "id": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "backend": "huggingface"
   },
   {
-    "model_name": "Gemma-2-27B-Instruct",
-    "model_id": "google/gemma-2-27b-it",
-    "backend": "huggingface",
-    "requires_api_key": true
+    "name": "Gemma-2-27B-Instruct",
+    "id": "google/gemma-2-27b-it",
+    "backend": "huggingface"
   },
   {
-    "model_name": "Gemma-2-2B-Instruct",
-    "model_id": "google/gemma-2-2b-it",
-    "backend": "huggingface",
-    "requires_api_key": true
+    "name": "Gemma-2-2B-Instruct",
+    "id": "google/gemma-2-2b-it",
+    "backend": "huggingface"
   },
   {
-    "model_name": "Llama-3.2-1B-Instruct",
-    "model_id": "meta-llama/Llama-3.2-1B-Instruct",
-    "backend": "huggingface",
-    "requires_api_key": true
+    "name": "Llama-3.2-1B-Instruct",
+    "id": "meta-llama/Llama-3.2-1B-Instruct",
+    "backend": "huggingface"
   },
   {
-    "model_name": "Phi-3.5-mini-instruct",
-    "model_id": "microsoft/Phi-3.5-mini-instruct",
-    "backend": "huggingface",
-    "requires_api_key": true
+    "name": "Phi-3.5-mini-instruct",
+    "id": "microsoft/Phi-3.5-mini-instruct",
+    "backend": "huggingface"
   }
 ]

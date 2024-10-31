@@ -1,48 +1,50 @@
 from dataclasses import dataclass, field
-from typing import Optional
 
 import torch
+import weave
 from itakello_logging import ItakelloLogging
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     PreTrainedModel,
     PreTrainedTokenizer,
+    PreTrainedTokenizerFast,
 )
+from weave import Model as WeaveModel
 
 from src.config.config import DEVICE
 
-from .base_model import Model
+from .base_model import BaseModel
 
 logger = ItakelloLogging().get_logger(__name__)
 
-# transformers.logging.set_verbosity_error()
-
 
 @dataclass
-class HuggingfaceModel(Model):
-    model: Optional[PreTrainedModel] = field(default=None, init=False)
-    tokenizer: Optional[PreTrainedTokenizer] = field(default=None, init=False)
+class HfModel(BaseModel, WeaveModel):
+    model: PreTrainedModel | None = field(init=False, default=None)
+    tokenizer: PreTrainedTokenizer | PreTrainedTokenizerFast | None = field(
+        init=False, default=None
+    )
 
     def __post_init__(self) -> None:
-        super().__post_init__()
-        kwargs = {"token": self.api_key} if self.api_key else {}
+        assert self.name is not None, logger.error("Model name must be provided")
         try:
             self.model = AutoModelForCausalLM.from_pretrained(
-                self.name, device_map=DEVICE, max_memory={0: "5.5GB"}, **kwargs
+                self.name, device_map=DEVICE, max_memory={0: "5.5GB"}
             )
         except Exception as e:
             logger.error(f"Error loading model {self.name}: {e}")
-            raise e
-        self.tokenizer = AutoTokenizer.from_pretrained(self.name, **kwargs)
+            exit(1)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.name)
 
-    def generate(self, prompt: str) -> str:
+    @weave.op
+    def predict(self, input: str) -> str:
         if self.model is None or self.tokenizer is None:
             logger.error("Model or tokenizer not initialized.")
             return ""
 
         # Tokenize input
-        model_inputs = self.tokenizer([prompt], return_tensors="pt")
+        model_inputs = self.tokenizer([input], return_tensors="pt")
         model_inputs = {k: v.to(DEVICE) for k, v in model_inputs.items()}
 
         # Generate
@@ -62,14 +64,3 @@ class HuggingfaceModel(Model):
             skip_special_tokens=True,
             clean_up_tokenization_spaces=False,
         )
-
-    async def a_generate(self, prompt: str) -> str:
-        return self.generate(prompt)
-
-    def get_model_name(self) -> str:
-        return self.name
-
-    def load_model(self) -> PreTrainedModel:
-        if self.model is None:
-            raise ValueError("Model not initialized.")
-        return self.model

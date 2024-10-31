@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Run main.py with arguments",
+            "name": "Python: Run main.py with mmlu",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
@@ -20,11 +20,19 @@
             "justMyCode": false
         },
         {
-            "name": "Python Debugger: Current File",
+            "name": "Python: Run main.py with all",
             "type": "debugpy",
             "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        }
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "-m",
+                "Llama-3.2-1B-Instruct",
+                "-b",
+                "all"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false
+        },
     ]
 }

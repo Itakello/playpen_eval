@@ -1,9 +1,11 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from abc import ABC
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any
+from typing import Type, TypeVar
 
 from ..classes.base_class import BaseClass
+
+T = TypeVar("T", bound="BaseModel")
 
 
 class ModelBackend(Enum):
@@ -12,30 +14,15 @@ class ModelBackend(Enum):
 
 
 @dataclass
-class Model(BaseClass, ABC):
-    name: str
+class BaseModel(BaseClass, ABC):
+    id: str
     backend: ModelBackend
-    api_key: str = field(init=False)
-
-    def __post_init__(self) -> None:
-        self.api_key = self.load_credentials(self.backend)
-
-    @abstractmethod
-    def generate(self, prompt: str) -> str:
-        pass
-
-    """@abstractmethod
-    def batch_generate(self, prompts: list[str]) -> list[str]:
-        pass"""
 
     @classmethod
-    def create(cls, model_name: str, backend: str) -> "Model":
+    def create(cls: Type[T], backend: str, id: str) -> T:
         # Get all available model implementations
-        model_classes = cls.get_all_subclasses()
+        model_classes = cls.get_specific_subclasses([backend])
 
         # Find the appropriate model class for the backend
-        return model_classes[backend](model_name, backend)
-
-    @abstractmethod
-    def load_model(self) -> Any:
-        pass
+        model_class = model_classes[backend]
+        return model_class(backend=backend, id=id)

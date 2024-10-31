@@ -29,6 +29,7 @@ You are an expert software engineer specializing in Python development, with a f
 - Use built-in types (list, dict, tuple, set) instead of importing from typing module.
 - For type hinting, use built-in types directly (e.g., list[int], dict[str, float]).
 - Use the | operator for union types (e.g., str | None) instead of Union from typing.
+- In classes, place public methods above private ones (those with "_" before the name).
 
 ## REST Principles
 

@@ -4,5 +4,5 @@ wandb
 transformers
 python-dotenv
 evaluate
-deepeval
 accelerate
+weave

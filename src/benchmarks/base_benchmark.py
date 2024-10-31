@@ -1,11 +1,16 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import Callable
 
-from datasets import load_dataset
+from datasets import Dataset as HfDataset
+from itakello_logging import ItakelloLogging
+from weave import Dataset as WeaveDataset
 
 from ..classes.base_class import BaseClass
-from ..models.base_model import Model
+from ..models.base_model import BaseModel
+
+logger = ItakelloLogging().get_logger(__name__)
 
 
 class BenchmarkType(Enum):
@@ -21,29 +26,34 @@ class BenchmarkCategory(Enum):
 
 
 @dataclass
-class Benchmark(BaseClass, ABC):
+class BaseBenchmark(BaseClass, ABC):
     name: str
     type: BenchmarkType
     category: BenchmarkCategory
     description: str
+    weave_dataset: WeaveDataset = field(init=False)
+    scoring_function: Callable = field(init=False)
 
     @abstractmethod
-    def evaluate(self, model: Model) -> dict:
+    def evaluate(self, model: BaseModel) -> dict:
+        """Abstract method to evaluate a model."""
         pass
 
-    @classmethod
-    def create(cls, name: str) -> "Benchmark":
-        # Get all available benchmark implementations
-        benchmark_classes = cls.get_all_subclasses()
-        return benchmark_classes[name](name)
+    @abstractmethod
+    def _build_dataset(self) -> WeaveDataset:
+        """Abstract method to build a dataset."""
+        pass
 
 
 @dataclass
-class HuggingfaceBenchmark(Benchmark, ABC):
+class HfBenchmark(BaseBenchmark, ABC):
     id: str
-    api_key: str = field(init=False)
+    tasks: list[str] = field(init=False)
+    hf_dataset: HfDataset = field(init=False)
 
     def __post_init__(self) -> None:
-        self.api_key = self.load_credentials("huggingface")
-        kwargs = {"token": self.api_key} if self.api_key else {}
-        self.benchmark = load_dataset(self.id, **kwargs)
+        self.hf_dataset = self._load_dataset()
+
+    @abstractmethod
+    def _load_dataset(self) -> HfDataset:
+        pass

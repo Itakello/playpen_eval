@@ -1,18 +1,31 @@
 from dataclasses import dataclass
 
-from ..models.base_model import Model
-from .base_benchmark import BenchmarkCategory, BenchmarkType
-from .lighteval_benchmark import LightEvalBenchmark
+from datasets import load_dataset
+from itakello_logging import ItakelloLogging
+from weave import Dataset as WeaveDataset
+
+from ..models.base_model import BaseModel
+from ..scoring_functions import exact_match
+from .base_benchmark import BenchmarkCategory, BenchmarkType, HfBenchmark
+
+logger = ItakelloLogging().get_logger(__name__)
 
 
 @dataclass
-class MMLUBenchmark(LightEvalBenchmark):
-    tasks: str = "helm|mmlu:high_school_geography|5|0"
+class MMLUBenchmark(HfBenchmark):
+    id: str = "tasksource/mmlu"
+    name: str = "MMLU"
     type: BenchmarkType = BenchmarkType.FUNCTIONAL
     category: BenchmarkCategory = BenchmarkCategory.REASONING
-    description: str = "A benchmark testing the model's ability to reason"
+    description: str = "Benchmark testing the model's reasoning abilities"
+    scoring_function = exact_match
 
-    def evaluate(self, model: Model) -> dict:
-        results = super().evaluate(model)
-        # Add any custom post-processing here
-        return results
+    def _build_dataset(self) -> WeaveDataset:
+        raise NotImplementedError
+
+    def evaluate(self, model: BaseModel) -> dict:
+        return super().evaluate(model)
+
+    def _load_dataset(self) -> dict:
+        dataset = load_dataset(self.id, "abstract_algebra")
+        return dataset["test"]

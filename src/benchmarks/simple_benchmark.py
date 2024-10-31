@@ -2,11 +2,11 @@ from dataclasses import dataclass
 
 from ..classes.score import Score
 from ..models.base_model import Model
-from .base_benchmark import Benchmark, BenchmarkCategory, BenchmarkType
+from .base_benchmark import BaseBenchmark, BenchmarkCategory, BenchmarkType
 
 
 @dataclass
-class SimpleBenchmark(Benchmark):
+class SimpleBenchmark(BaseBenchmark):
     name: str = "simple"
     type: BenchmarkType = BenchmarkType.FUNCTIONAL
     category: BenchmarkCategory = BenchmarkCategory.REASONING

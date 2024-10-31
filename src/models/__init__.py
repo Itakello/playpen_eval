@@ -1,30 +1,35 @@
 import json
 
+from itakello_logging import ItakelloLogging
+
 from ..config.config import MODEL_REGISTRY_PATH
-from .base_model import Model
+from .base_model import BaseModel
+
+logger = ItakelloLogging().get_logger(__name__)
 
 
-def get_model(model_name: str) -> Model:
-    model_entry = get_model_from_registry(model_name)
-    model = Model.create(
-        model_name=model_entry["model_id"], backend=model_entry["backend"]
+def get_model(name: str) -> BaseModel:
+    entry = get_model_from_registry(name)
+    model = BaseModel.create(
+        id=entry["id"], name=entry["name"], backend=entry["backend"]
     )
+    logger.debug(f"Model {name} loaded.")
     return model
 
 
-def get_model_id(model_name: str) -> str:
-    model_entry = get_model_from_registry(model_name)
-    return model_entry['model_id']
+def get_model_id(name: str) -> str:
+    entry = get_model_from_registry(name)
+    return entry["model_id"]
 
 
-def get_model_from_registry(model_name: str) -> dict:
-    model_registry = json.loads(MODEL_REGISTRY_PATH.read_text())
+def get_model_from_registry(name: str) -> dict:
+    registry = json.loads(MODEL_REGISTRY_PATH.read_text())
 
-    model_entry = next(
-        (entry for entry in model_registry if entry.get("model_name") == model_name),
+    entry = next(
+        (entry for entry in registry if entry.get("name") == name),
         None,
     )
 
-    if model_entry is None:
-        raise ValueError(f"Model {model_name} not found.")
-    return model_entry
+    if entry is None:
+        raise ValueError(f"Model {name} not found.")
+    return entry

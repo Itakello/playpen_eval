@@ -1,30 +1,84 @@
 import importlib
 import inspect
-import os
 from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Type, TypeVar
 
 from itakello_logging import ItakelloLogging
 
 logger = ItakelloLogging().get_logger(__name__)
+T = TypeVar("T", bound="BaseClass")
 
 
 @dataclass
 class BaseClass(ABC):
+
+    @classmethod
+    def get_all_subclasses(cls: Type[T]) -> dict[str, T]:
+        """Get all subclasses in the same directory that inherit from this class."""
+        current_dir, base_module_name = cls._get_module_path()
+        if not current_dir:
+            return {}
+
+        py_files = cls._get_py_files(current_dir)
+        return cls._load_subclasses(py_files, base_module_name)
+
+    @classmethod
+    def get_specific_subclasses(
+        cls: Type[T], subclass_names: list[str]
+    ) -> dict[str, T]:
+        """Get specific subclasses by their names.
+
+        Args:
+            subclass_names: A list of subclass names to retrieve (case-insensitive)
+
+        Returns:
+            A dictionary containing the names and the subclasses if found
+        """
+        current_dir, base_module_name = cls._get_module_path()
+        if not current_dir:
+            return {}
+
+        py_files = cls._get_py_files(current_dir)
+        subclasses = cls._load_subclasses(py_files, base_module_name)
+
+        found_subclasses = cls._filter_subclasses(subclasses, subclass_names)
+
+        return found_subclasses
+
+    @classmethod
+    def _filter_subclasses(
+        cls, subclasses: dict[str, T], subclass_names: list[str]
+    ) -> dict[str, T]:
+        """Filter the subclasses based on the given names."""
+        # Normalize subclass names to lowercase for case-insensitive matching
+        subclass_names = [name.lower() for name in subclass_names]
+        found_subclasses = {}
+
+        for name, subclass in subclasses.items():
+            if name.lower() in subclass_names:
+                found_subclasses[name] = subclass
+
+        missing_subclasses = set(subclass_names) - set(found_subclasses.keys())
+        if missing_subclasses:
+            logger.warning(f"Subclasses not found: {', '.join(missing_subclasses)}")
+
+        return found_subclasses
+
     @classmethod
     def _get_module_path(cls) -> tuple[Path | None, str]:
         """Helper method to get the module path and base module name."""
-        calling_frame = inspect.stack()[1]
-        calling_module = inspect.getmodule(calling_frame[0])
+        # Get the module where the subclass is defined
+        subclass_module = inspect.getmodule(cls)
 
         # Handle case where module path cannot be determined
-        module_file = getattr(calling_module, "__file__", None)
+        module_file = getattr(subclass_module, "__file__", None)
         if not module_file:
             return None, ""
 
         current_dir = Path(str(module_file)).parent
-        base_module_name = cls.__module__.rsplit(".", 1)[0]
+        base_module_name = subclass_module.__name__.rsplit(".", 1)[0]
         return current_dir, base_module_name
 
     @classmethod
@@ -39,45 +93,9 @@ class BaseClass(ABC):
         ]
 
     @classmethod
-    def get_all_subclasses(cls) -> dict[str, type]:
-        """Get all subclasses in the same directory that inherit from this class."""
-        current_dir, base_module_name = cls._get_module_path()
-        if not current_dir:
-            return {}
-
-        py_files = cls._get_py_files(current_dir)
-        return cls._load_subclasses(py_files, base_module_name)
-
-    @classmethod
-    def get_specific_subclass(cls, subclass_name: str) -> tuple[str, type]:
-        """Get a specific subclass by its name.
-
-        Args:
-            subclass_name: The name of the subclass to retrieve (case-insensitive)
-
-        Returns:
-            A tuple containing the name and the subclass if found, None otherwise
-        """
-        current_dir, base_module_name = cls._get_module_path()
-        if not current_dir:
-            return None
-
-        py_files = cls._get_py_files(current_dir)
-        subclasses = cls._load_subclasses(py_files, base_module_name)
-
-        # Try to match the subclass name (case-insensitive)
-        subclass_name = subclass_name.lower()
-        for name, subclass in subclasses.items():
-            if name.lower() == subclass_name:
-                return subclass
-
-        logger.warning(f"Subclass '{subclass_name}' not found")
-        return None
-
-    @classmethod
     def _load_subclasses(
-        cls, py_files: list[Path], base_module_name: str
-    ) -> dict[str, type]:
+        cls: Type[T], py_files: list[Path], base_module_name: str
+    ) -> dict[str, T]:
         """Helper method to load subclasses from Python files."""
         subclasses = {}
         for file in py_files:
@@ -97,11 +115,3 @@ class BaseClass(ABC):
                 continue
 
         return subclasses
-
-    def load_credentials(self, backend: str) -> str:
-        """Load API key from environment variables."""
-        env_var_name = f"{backend.upper()}_API_KEY"
-        key = os.getenv(env_var_name)
-        if key is None:
-            raise ValueError(f"API key for {backend} not found.")
-        return key

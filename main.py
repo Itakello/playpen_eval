@@ -1,36 +1,38 @@
 import argparse
 
+import weave
 from dotenv import load_dotenv
 from itakello_logging import ItakelloLogging
 
-from src.benchmarks import run_benchmark, run_benchmark_lighteval
-from src.benchmarks.base_benchmark import Benchmark
-from src.benchmarks.lighteval_benchmark import LightEvalBenchmark
-from src.models import get_model, get_model_id
+from src.benchmarks import get_benchmarks
+from src.benchmarks.mmlu_benchmark import MMLUBenchmark
+from src.models import get_model
+from src.models.base_model import ModelBackend
+from src.models.huggingface_model import HfModel
 
 # Load environment variables from .env file
 load_dotenv()
 
+# Set up logger
 logger = ItakelloLogging(debug=True).get_logger(__name__)
+
+# Set up Weave
+# weave.init("Playpen Evaluation")
 
 
 def main(args: argparse.Namespace) -> None:
-    if len(args.benchmark) == 1 and args.benchmark[0] == "all":
-        benchmarks = Benchmark.get_all_subclasses()
-    else:
-        benchmarks = [Benchmark.get_specific_subclass(benchmark) for benchmark in args.benchmark]
-    logger.debug(
-        f"Evaluating the following benchmarks\n: {['-' + benchmark + '\n' for benchmark in benchmarks]}"
+    # mmlu_benchmark = MMLUBenchmark()
+    # print(mmlu_benchmark)
+    hf_model = HfModel(
+        # name="Llama-3.2-1B-Instruct",
+        id="meta-llama/Llama-3.2-1B-Instruct",
+        backend=ModelBackend.HUGGINGFACE,
     )
-    logger.debug(f"Running with model: {args.model}")
-    if issubclass(benchmark.__class__, LightEvalBenchmark):
-        model_name = get_model_id(args.model)
-        results = run_benchmark_lighteval(model_name, benchmark)
-    else:
-        model = get_model(args.model)
-        results = run_benchmark(model, benchmark)
+    print(hf_model)
+    """benchmarks = get_benchmarks(args.benchmark)
+    model = get_model(args.model)
     for benchmark, df in results.items():
-        logger.info(f"{benchmark}:\n{df}\n")
+        logger.info(f"{benchmark}:\n{df}\n")"""
 
 
 if __name__ == "__main__":
@@ -41,8 +43,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b",
         "--benchmark",
-        type=str,
+        nargs="+",
         required=True,
-        help="Name of the benchmark to run.",
+        help="Names of the benchmarks to run",
     )
     main(parser.parse_args())
