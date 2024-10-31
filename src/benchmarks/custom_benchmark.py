@@ -2,12 +2,11 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Callable, Optional
 
-import weave
 from datasets import Dataset as HfDataset
 from itakello_logging import ItakelloLogging
 from pydantic import BaseModel, Field, model_validator
 from weave import Dataset as WeaveDataset
-from weave import Evaluation
+from weave import Evaluation, Table
 
 from ..classes.custom_class import CustomClass
 from ..models.custom_model import BaseModel as BaseModelABC
@@ -45,7 +44,7 @@ class CustomBenchmark(CustomClass, ABC, BaseModel):
 class HfBenchmark(CustomBenchmark, ABC, BaseModel):
     model_config = {"arbitrary_types_allowed": True}
     id: str
-    hf_dataset: Optional[HfDataset] = Field(default=None)
+    hf_dataset: Optional[list[dict]] = Field(default=None)
 
     @model_validator(mode="after")
     def create_hf_dataset(self) -> "HfBenchmark":
@@ -54,8 +53,13 @@ class HfBenchmark(CustomBenchmark, ABC, BaseModel):
         self._create_weave_dataset()
         return self
 
+    def _build_dataset(self) -> WeaveDataset:
+        assert self.hf_dataset
+        table_rows = Table(self.hf_dataset)
+        return WeaveDataset(name=self.name, rows=table_rows)
+
     @abstractmethod
-    def _load_test_dataset(self) -> HfDataset:
+    def _load_test_dataset(self) -> list[dict]:
         pass
 
     def __str__(self) -> str:

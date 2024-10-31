@@ -13,7 +13,7 @@ def get_benchmarks(benchmark_names: list[str]) -> dict[str, CustomBenchmark]:
     else:
         benchmarks = CustomBenchmark.get_specific_subclasses(benchmark_names)
 
-    benchmarks = {name: benchmark() for name, benchmark in benchmarks.items()}
+    benchmarks = {name: benchmark() for name, benchmark in benchmarks.items()}  # type: ignore
 
     if None in benchmarks.values():
         logger.error("One or more benchmarks could not be found")
@@ -23,10 +23,3 @@ def get_benchmarks(benchmark_names: list[str]) -> dict[str, CustomBenchmark]:
         + "".join([f"- {benchmark}\n" for benchmark in benchmarks])
     )
     return benchmarks
-
-
-"""def run_benchmark(model: Model, benchmark: BaseBenchmark) -> dict[str, Score]:
-    results = {}
-    result = benchmark.evaluate(model)
-    results[benchmark.name] = result
-    return results"""

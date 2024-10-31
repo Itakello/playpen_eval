@@ -62,9 +62,10 @@ class HfModel(CustomModel, BaseModel):
             )
 
         # Decode and return
-        return self.tokenizer.decode(
+        output = self.tokenizer.decode(
             generated_ids[0],
             padding=True,
             skip_special_tokens=True,
             clean_up_tokenization_spaces=False,
         )
+        return output
